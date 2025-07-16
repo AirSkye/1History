@@ -35,14 +35,21 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           RUSTTARGET: ${{ matrix.target }}
           EXTRA_FILES: "README.org"
-      # 新增：把产物上传到 Actions Artifacts
+      # 找出 rust-build 生成的压缩包，并统一放到 artifacts 目录
+      - name: Collect build artifacts
+        run: |
+          mkdir -p artifacts
+          # 打印当前目录内容，方便调试
+          ls -lah
+          # 复制找到的 zip / tar.gz
+          find . -maxdepth 1 -type f \( -name "*.zip" -o -name "*.tar.gz" \) -exec mv {} artifacts/ \;
+          # 再次确认
+          ls -lah artifacts
+
+      # 上传到 Actions Artifacts
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
         with:
-          # artifacts 区域的文件名，支持表达式来区分矩阵
           name: ${{ github.event.repository.name }}-${{ matrix.target }}
-          # rust-build.action 会把压缩包生成在 dist/ 目录下
-          path: |
-            *.zip
-            *.tar.gz
+          path: artifacts/
           if-no-files-found: error
