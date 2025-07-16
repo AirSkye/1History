@@ -16,12 +16,10 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        target: [x86_64-pc-windows-gnu, x86_64-unknown-linux-musl]
+        target: [x86_64-pc-windows-gnu]
     steps:
       - uses: actions/checkout@v4
-
       - uses: dtolnay/rust-toolchain@stable
-
       - name: Cache Crates
         uses: actions/cache@v3
         with:
@@ -31,15 +29,12 @@ jobs:
           key: ${{ runner.os }}-${{ hashFiles('Cargo.lock') }}
           restore-keys: |
             ${{ runner.os }}
-
-      # 编译并自动发布 Release（含二进制）
       - name: Compile and release
         uses: rust-build/rust-build.action@latest
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           RUSTTARGET: ${{ matrix.target }}
           EXTRA_FILES: "README.org"
-
       # 新增：把产物上传到 Actions Artifacts
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
