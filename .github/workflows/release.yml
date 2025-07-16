@@ -19,7 +19,9 @@ jobs:
         target: [x86_64-pc-windows-gnu, x86_64-unknown-linux-musl]
     steps:
       - uses: actions/checkout@v4
+
       - uses: dtolnay/rust-toolchain@stable
+
       - name: Cache Crates
         uses: actions/cache@v3
         with:
@@ -29,19 +31,22 @@ jobs:
           key: ${{ runner.os }}-${{ hashFiles('Cargo.lock') }}
           restore-keys: |
             ${{ runner.os }}
-      - name: Build
-        run: cargo build --release --target ${{ matrix.target }}
-      - name: Prepare artifact
-        run: |
-          mkdir -p dist
-          cp target/${{ matrix.target }}/release/* dist/ || true
-          cp README.org dist/ || true
-          cd dist
-          zip -r release-${{ matrix.target }}.zip ./*
-          cd ..
-      - name: Upload artifact to Release
-        uses: softprops/action-gh-release@v2
-        with:
-          files: dist/release-${{ matrix.target }}.zip
+
+      # 编译并自动发布 Release（含二进制）
+      - name: Compile and release
+        uses: rust-build/rust-build.action@latest
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RUSTTARGET: ${{ matrix.target }}
+          EXTRA_FILES: "README.org"
+
+      # 新增：把产物上传到 Actions Artifacts
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          # artifacts 区域的文件名，支持表达式来区分矩阵
+          name: ${{ github.event.repository.name }}-${{ matrix.target }}
+          # rust-build.action 会把压缩包生成在 dist/ 目录下
+          path: |
+            dist/*
+          if-no-files-found: error
