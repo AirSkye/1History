@@ -42,9 +42,10 @@ jobs:
           # 打印当前目录内容，方便调试
           ls -lah
           # 复制找到的 zip / tar.gz
-          find . -maxdepth 1 -type f \( -name "*.zip" -o -name "*.tar.gz" \) -exec mv {} artifacts/ \;
+          find ../ -type f \( -name "*.zip" -o -name "*.tar.gz" \) -exec mv {} artifacts/ \;
           # 再次确认
           ls -lah artifacts
+          ls -lah ../target
 
       # 上传到 Actions Artifacts
       - name: Upload build artifacts
