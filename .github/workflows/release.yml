@@ -29,9 +29,19 @@ jobs:
           key: ${{ runner.os }}-${{ hashFiles('Cargo.lock') }}
           restore-keys: |
             ${{ runner.os }}
-      - name: Compile and release
-        uses: rust-build/rust-build.action@latest
+      - name: Build
+        run: cargo build --release --target ${{ matrix.target }}
+      - name: Prepare artifact
+        run: |
+          mkdir -p dist
+          cp target/${{ matrix.target }}/release/* dist/ || true
+          cp README.org dist/ || true
+          cd dist
+          zip -r release-${{ matrix.target }}.zip ./*
+          cd ..
+      - name: Upload artifact to Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/release-${{ matrix.target }}.zip
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          RUSTTARGET: ${{ matrix.target }}
-          EXTRA_FILES: "README.org"
