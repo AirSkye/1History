@@ -35,22 +35,11 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           RUSTTARGET: ${{ matrix.target }}
           EXTRA_FILES: "README.org"
-      # 找出 rust-build 生成的压缩包，并统一放到 artifacts 目录
-      - name: Collect build artifacts
-        run: |
-          mkdir -p artifacts
-          # 打印当前目录内容，方便调试
-          ls -lah
-          # 复制找到的 zip / tar.gz
-          find ../ -type f \( -name "*.zip" -o -name "*.tar.gz" \) -exec mv {} artifacts/ \;
-          # 再次确认
-          ls -lah artifacts
-          ls -lah ../target
 
       # 上传到 Actions Artifacts
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
         with:
           name: ${{ github.event.repository.name }}-${{ matrix.target }}
-          path: artifacts/
+          path: output/
           if-no-files-found: error
